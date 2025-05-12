@@ -1,7 +1,7 @@
 {
-    "name": "Portrait Q&A PWA",
-    "short_name": "QnA PWA",
-    "description": "PWA strictly locked to portrait, featuring TensorFlow.js Q&A model.",
+    "name": "Portrait Q&A WikiPWA",
+    "short_name": "QnA WikiPWA",
+    "description": "PWA for Q&A with Wikipedia context, locked to portrait.",
     "start_url": "./index.html",
     "display": "fullscreen",
     "orientation": "portrait",
