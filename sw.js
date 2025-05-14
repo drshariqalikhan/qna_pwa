@@ -5,9 +5,9 @@ const urlsToCache = [
   '/index.html',
   // '/styles.css', // Not needed if CSS is inline
   // '/script.js',  // Not needed if JS is inline
-  '/icon-192x192.png',
-  '/icon-512x512.png',
-  '/apple-touch-icon.png'
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png',
+  // '/apple-touch-icon.png'
   // Add other static assets if you have them
 ];
 
