@@ -1,69 +1,69 @@
-// sw-workbox.js
+// sw.js
+const CACHE_NAME = 'pwa-logger-cache-v1';
+const urlsToCache = [
+  '/',
+  '/index.html',
+  // '/styles.css', // Not needed if CSS is inline
+  // '/script.js',  // Not needed if JS is inline
+  '/icon-192x192.png',
+  '/icon-512x512.png',
+  '/apple-touch-icon.png'
+  // Add other static assets if you have them
+];
 
-importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.1.0/workbox-sw.js');
+// Install event: cache core assets
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        console.log('Opened cache');
+        return cache.addAll(urlsToCache);
+      })
+      .then(() => self.skipWaiting()) // Force activation of new SW
+  );
+});
 
-if (workbox) {
-    console.log(`Workbox is loaded 🎉`);
+// Activate event: clean up old caches
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.filter(cacheName => {
+          return cacheName.startsWith('pwa-logger-cache-') && cacheName !== CACHE_NAME;
+        }).map(cacheName => {
+          return caches.delete(cacheName);
+        })
+      );
+    }).then(() => self.clients.claim()) // Take control of open clients
+  );
+});
 
-    workbox.core.setCacheNameDetails({
-        prefix: 'my-qna-pwa', // Updated prefix for clarity
-        suffix: 'v1', // Version for this app
-        precache: 'precache',
-        runtime: 'runtime-cache'
-    });
-
-    // Precache the app shell and essential assets
-    // Revision is null so it updates on each build if files change content
-    workbox.precaching.precacheAndRoute([
-        { url: './', revision: null }, // Caches the root (often index.html)
-        { url: './index.html', revision: null },
-        { url: './manifest.json', revision: null },
-        { url: './icons/icon-192x192.png', revision: null },
-        { url: './icons/icon-512x512.png', revision: null }
-        // Note: TensorFlow.js scripts are loaded from CDN and not precached by default.
-        // For offline TFJS, you'd need a runtime caching strategy for the CDN URLs.
-    ]);
-
-    // Optional: Runtime caching for Google Fonts or other external assets if you use them
-    // workbox.routing.registerRoute(
-    //     ({url}) => url.origin === 'https://fonts.googleapis.com',
-    //     new workbox.strategies.StaleWhileRevalidate({
-    //         cacheName: 'google-fonts-stylesheets',
-    //     })
-    // );
-
-    // Optional: Runtime caching for TensorFlow.js CDN (use with caution due to size/updates)
-    /*
-    workbox.routing.registerRoute(
-        ({url}) => url.origin === 'https://cdn.jsdelivr.net' &&
-                   url.pathname.startsWith('/npm/@tensorflow'),
-        new workbox.strategies.CacheFirst({ // Or StaleWhileRevalidate
-            cacheName: 'tfjs-cdn-cache',
-            plugins: [
-                new workbox.cacheableResponse.CacheableResponsePlugin({
-                    statuses: [0, 200], // Cache opaque responses and successful ones
-                }),
-                new workbox.expiration.ExpirationPlugin({
-                    maxEntries: 10, // Cache a few model/library versions
-                    maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
-                }),
-            ],
+// Fetch event: serve from cache, fallback to network
+self.addEventListener('fetch', event => {
+  // We only want to cache GET requests for app shell files
+  if (event.request.method === 'GET' && urlsToCache.includes(new URL(event.request.url).pathname)) {
+    event.respondWith(
+      caches.match(event.request)
+        .then(response => {
+          if (response) {
+            return response; // Serve from cache
+          }
+          return fetch(event.request).then(
+            networkResponse => {
+              // Optionally cache new assets dynamically if needed,
+              // but for bare-bones, pre-caching is often enough.
+              return networkResponse;
+            }
+          );
         })
     );
-    */
-
-
-    workbox.core.skipWaiting();
-    workbox.core.clientsClaim();
-
-    self.addEventListener('message', (event) => {
-        if (event.data && event.data.type === 'SKIP_WAITING') {
-          self.skipWaiting();
-        }
-    });
-
-    console.log('Workbox service worker configured for Q&A PWA.');
-
-} else {
-    console.error(`Workbox didn't load 😬`);
-}
+  } else if (event.request.method === 'POST' && event.request.url.includes('script.google.com')) {
+    // For POST requests to Google Apps Script, just fetch them directly.
+    // Do not attempt to cache these.
+    event.respondWith(fetch(event.request));
+  } else {
+    // For other requests, just fetch from network.
+    // This ensures non-cached resources (like external APIs not Google Scripts) work.
+    event.respondWith(fetch(event.request));
+  }
+});
