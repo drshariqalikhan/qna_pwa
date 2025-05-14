@@ -1,4 +1,4 @@
-// sw.js
+// sw.js  sync
 const CACHE_NAME = 'pwa-logger-cache-v1';
 const urlsToCache = [
   '/',
