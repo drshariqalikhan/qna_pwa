@@ -7,7 +7,7 @@ const urlsToCache = [
   // '/script.js',  // Not needed if JS is inline
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
-  // '/apple-touch-icon.png'
+  'icons/apple-touch-icon.png'
   // Add other static assets if you have them
 ];
 
