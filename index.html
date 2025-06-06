@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Offline Gemma Chat</title>
+    <title>Offline AI Chat</title>
     
     <!-- PWA & iOS ENHANCEMENT TAGS -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#252526">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="Gemma Chat">
+    <meta name="apple-mobile-web-app-title" content="AI Chat">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
 
-    <!-- CSS STYLES (Unchanged) -->
+    <!-- CSS STYLES -->
     <style>
         :root {
             --safe-area-inset-top: env(safe-area-inset-top);
@@ -39,7 +39,7 @@
 <body>
     <div id="app">
         <header>
-            <h1>On-Device Gemma Chat</h1>
+            <h1>On-Device AI Chat</h1>
             <p id="status">Initializing application...</p>
         </header>
         <main id="chat-container"></main>
@@ -56,12 +56,6 @@
         const messageInput = document.getElementById('message-input');
         const sendBtn = document.getElementById('send-btn');
         
-        /**
-         * A helper function for logging events to the console and updating the user-facing status.
-         * @param {string} message - The message to log.
-         * @param {'log'|'info'|'warn'|'error'} level - The console log level.
-         * @param {boolean} updateUserStatus - Whether to update the on-screen status text.
-         */
         function logEvent(message, level = 'log', updateUserStatus = false) {
             console[level](`[AppEvent] - ${new Date().toISOString()} - ${message}`);
             if (updateUserStatus) {
@@ -70,7 +64,6 @@
             }
         }
         
-        // --- 1. PWA Service Worker Registration ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 logEvent('Page loaded. Attempting to register Service Worker...', 'info');
@@ -82,17 +75,16 @@
             logEvent('Service Worker not supported in this browser.', 'warn');
         }
 
-        // --- 2. Main Application Logic ---
         async function main() {
             try {
-                // --- 2a. Import AI Library ---
                 logEvent('Importing Transformers.js library...', 'log');
                 const { pipeline, env } = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.1');
                 env.allowRemoteModels = true;
                 logEvent('Transformers.js library imported successfully.', 'log');
                 
-                // --- 2b. Load AI Model ---
-                const model_id = 'Xenova/gemma-2b-it';
+                // --- MODEL CHANGE ---
+                // Switched to a non-gated model to fix the authorization error.
+                const model_id = 'Xenova/tiny-llama-1.1b-chat-v1.0'; 
                 logEvent(`Attempting to load AI model: ${model_id}`, 'info', true);
 
                 const generator = await pipeline('text-generation', model_id, {
@@ -106,14 +98,12 @@
                 
                 logEvent('AI Model loaded and ready!', 'info', true);
 
-                // --- 2c. Enable UI ---
                 messageInput.disabled = false;
                 sendBtn.disabled = false;
                 messageInput.placeholder = 'Ask something...';
-                addMessage('AI', 'Hello! I am Google\'s Gemma model running entirely on your device. How can I help you?');
+                addMessage('AI', 'Hello! I am a local AI running entirely on your device. How can I help you?');
                 logEvent('UI enabled. Ready for interaction.', 'info');
 
-                // --- 3. Setup Event Handlers ---
                 sendBtn.addEventListener('click', () => handleSend(generator));
                 messageInput.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
@@ -140,15 +130,18 @@
             const thinkingMessage = addMessage('AI', '...');
 
             try {
-                // --- 4. AI Inference ---
-                const prompt = `<start_of_turn>user\n${userMessage}<end_of_turn>\n<start_of_turn>model\n`;
+                // --- PROMPT FORMAT CHANGE ---
+                // Using the ChatML format required by TinyLlama.
+                const prompt = `<|user|>\n${userMessage}\n<|assistant|>\n`;
                 logEvent(`Formatted prompt for model:\n${prompt}`, 'log');
                 logEvent('Starting AI generation...', 'info');
 
                 const result = await generator(prompt, { max_new_tokens: 200, temperature: 0.7, top_k: 50, do_sample: true });
                 
                 logEvent('AI generation complete.', 'log');
-                const aiResponse = result[0].generated_text.split('<start_of_turn>model\n')[1].trim();
+                
+                // --- RESPONSE PARSING CHANGE ---
+                const aiResponse = result[0].generated_text.split('<|assistant|>\n')[1].trim();
                 logEvent(`Parsed AI response: "${aiResponse}"`, 'log');
 
                 thinkingMessage.textContent = aiResponse;
@@ -157,7 +150,6 @@
                 logEvent(`Error during AI generation: ${error}`, 'error');
                 addMessage('AI', 'Sorry, I encountered an error while processing your request.', 'error');
             } finally {
-                // --- 5. Re-enable UI ---
                 logEvent('Re-enabling input fields.', 'log');
                 messageInput.disabled = false;
                 sendBtn.disabled = false;
@@ -175,7 +167,6 @@
             return messageElement;
         }
 
-        // Start the application
         main();
     </script>
 </body>
