@@ -1,27 +1,21 @@
 {
-  "name": "Bare Bones PWA Logger",
-  "short_name": "PWA Log",
-  "description": "A bare bones PWA that logs data to Google Sheets.",
-  "start_url": "/index.html",
-  "display": "standalone",
-  "background_color": "#333333",
-  "theme_color": "#222222",
-  "orientation": "portrait-primary",
-  "icons": [
-    {
-      "src": "./icons/icon-192x192.png",
-      "type": "image/png",
-      "sizes": "192x192"
-    },
-    {
-      "src": "./icons/apple-touch-icon.png",
-      "type": "image/png",
-      "sizes": "180x180"
-    },
-    {
-      "src": "./icons/icon-512x512.png",
-      "type": "image/png",
-      "sizes": "512x512"
-    }
-  ]
+    "name": "Offline Gemma Chat",
+    "short_name": "Gemma Chat",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#252526",
+    "theme_color": "#333333",
+    "description": "A PWA chat app with an on-device Gemma LLM.",
+    "icons": [
+        {
+            "src": "icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
 }

@@ -3,337 +3,221 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>PWA Logger</title>
-
-    <!-- PWA Manifest -->
+    <title>Offline Gemma Chat</title>
+    
+    <!-- =============================================================== -->
+    <!-- PWA & iOS ENHANCEMENT TAGS -->
+    <!-- =============================================================== -->
+    
+    <!-- Standard PWA Manifest -->
     <link rel="manifest" href="manifest.json">
-
-    <!-- Apple PWA Meta Tags -->
+    
+    <!-- Theme Color for Browser UI -->
+    <meta name="theme-color" content="#252526">
+    
+    <!-- iOS: Enables Standalone PWA Mode -->
     <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <!-- iOS: App Title for Home Screen -->
+    <meta name="apple-mobile-web-app-title" content="Gemma Chat">
+    
+    <!-- iOS: Status Bar Style. 'black-translucent' allows the app content to flow underneath. -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="PWA Log">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <!-- You can add more apple-touch-icon sizes if needed -->
-    <!-- <link rel="apple-touch-icon" sizes="152x152" href="apple-touch-icon-152x152.png"> -->
-    <!-- <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-180x180.png"> -->
-    <!-- <link rel="apple-touch-icon" sizes="167x167" href="apple-touch-icon-167x167.png"> -->
+    
+    <!-- iOS: App Icon for Home Screen (Most important size for modern iPhones is 180x180) -->
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <!-- You can add more sizes for older devices if you wish -->
+    <!-- <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png"> -->
+    <!-- <link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png"> -->
+    <!-- <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png"> -->
 
+    <!-- =============================================================== -->
 
-    <!-- Theme color for browser UI -->
-    <meta name="theme-color" content="#222222">
-
+    <!-- CSS STYLES -->
     <style>
         :root {
-            --bg-color-light: #f4f4f4;
-            --text-color-light: #333;
-            --input-bg-light: #fff;
-            --button-bg-light: #007bff;
-            --button-text-light: #fff;
-            --border-color-light: #ccc;
-            --log-bg-light: #e9e9e9;
-
-            --bg-color-dark: #1e1e1e;
-            --text-color-dark: #e0e0e0;
-            --input-bg-dark: #2a2a2a;
-            --button-bg-dark: #0056b3;
-            --button-text-dark: #e0e0e0;
-            --border-color-dark: #555;
-            --log-bg-dark: #252525;
-
-            --error-color: #dc3545;
-            --success-color: #28a745;
-            --info-color: #17a2b8;
+            /* This is needed for the status bar area on notched iPhones */
+            --safe-area-inset-top: env(safe-area-inset-top);
+            --safe-area-inset-bottom: env(safe-area-inset-bottom);
         }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #1e1e1e;
+            color: #e0e0e0;
             margin: 0;
-            padding: 20px;
-            transition: background-color 0.3s, color 0.3s;
-            line-height: 1.6;
-            background-color: var(--bg-color-light);
-            color: var(--text-color-light);
-            min-height: 100vh; /* Ensure full viewport height */
+            display: flex;
+            justify-content: center;
         }
-
-        @media (prefers-color-scheme: dark) {
-            body {
-                background-color: var(--bg-color-dark);
-                color: var(--text-color-dark);
-            }
-            input[type="text"], textarea {
-                background-color: var(--input-bg-dark);
-                color: var(--text-color-dark);
-                border-color: var(--border-color-dark);
-            }
-            button {
-                background-color: var(--button-bg-dark);
-                color: var(--button-text-dark);
-            }
-            #logContainer {
-                background-color: var(--log-bg-dark);
-                border-color: var(--border-color-dark);
-            }
-            .log-entry.error { color: var(--error-color); }
-            .log-entry.success { color: var(--success-color); }
-            .log-entry.info { color: var(--info-color); }
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 15px;
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-
-        input[type="text"], textarea {
-            width: calc(100% - 22px); /* Account for padding and border */
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid var(--border-color-light);
-            border-radius: 5px;
-            font-size: 1rem;
-            background-color: var(--input-bg-light);
-            color: var(--text-color-light);
-        }
-        @media (prefers-color-scheme: dark) {
-            input[type="text"], textarea {
-                border: 1px solid var(--border-color-dark);
-                background-color: var(--input-bg-dark);
-                color: var(--text-color-dark);
-            }
-        }
-
-
-        button {
-            display: block;
+        #app {
             width: 100%;
-            padding: 12px;
-            background-color: var(--button-bg-light);
-            color: var(--button-text-light);
-            border: none;
-            border-radius: 5px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background-color 0.2s;
+            max-width: 700px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #252526;
         }
-        button:hover {
-            opacity: 0.9;
+        header {
+            padding: 1rem;
+            /* Add padding to account for the status bar on notched iPhones */
+            padding-top: calc(1rem + var(--safe-area-inset-top));
+            background-color: #333333;
+            text-align: center;
+            border-bottom: 1px solid #444;
+            flex-shrink: 0;
         }
-        @media (prefers-color-scheme: dark) {
-            button {
-                background-color: var(--button-bg-dark);
-                color: var(--button-text-dark);
-            }
-        }
-
-        #logContainer {
-            margin-top: 25px;
-            padding: 15px;
-            background-color: var(--log-bg-light);
-            border: 1px solid var(--border-color-light);
-            border-radius: 5px;
-            min-height: 100px;
-            max-height: 300px;
+        h1 { margin: 0; font-size: 1.2rem; }
+        #status { font-size: 0.8rem; color: #aaaaaa; margin-top: 5px; min-height: 1em; }
+        #chat-container {
+            flex-grow: 1;
             overflow-y: auto;
-            font-family: "Courier New", Courier, monospace;
-            font-size: 0.9rem;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
         }
-        @media (prefers-color-scheme: dark) {
-            #logContainer {
-                background-color: var(--log-bg-dark);
-                border: 1px solid var(--border-color-dark);
-            }
+        .message {
+            padding: 0.8rem 1rem;
+            border-radius: 1rem;
+            max-width: 85%;
+            word-wrap: break-word;
+            line-height: 1.4;
         }
-
-        .log-entry {
-            padding: 5px 0;
-            border-bottom: 1px dashed #ccc;
+        .message.you {
+            background-color: #007aff;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 0.2rem;
         }
-        @media (prefers-color-scheme: dark) {
-            .log-entry {
-                border-bottom: 1px dashed var(--border-color-dark);
-            }
+        .message.ai {
+            background-color: #3a3a3c;
+            align-self: flex-start;
+            border-bottom-left-radius: 0.2rem;
         }
-        .log-entry:last-child {
-            border-bottom: none;
+        footer {
+            display: flex;
+            padding: 1rem;
+            /* Add padding to account for the home bar on modern iPhones */
+            padding-bottom: calc(1rem + var(--safe-area-inset-bottom));
+            border-top: 1px solid #444;
+            background-color: #333333;
+            flex-shrink: 0;
         }
-        .log-entry.error {
-            color: var(--error-color);
+        #message-input {
+            flex-grow: 1;
+            background-color: #3c3c3c;
+            border: 1px solid #555;
+            color: white;
+            padding: 0.8rem;
+            border-radius: 1rem;
+            margin-right: 0.5rem;
+            font-size: 1rem;
+        }
+        #send-btn {
+            background-color: #007aff;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.2rem;
+            border-radius: 1rem;
+            cursor: pointer;
             font-weight: bold;
         }
-        .log-entry.success {
-            color: var(--success-color);
-        }
-        .log-entry.info {
-            color: var(--info-color);
+        #send-btn:disabled, #message-input:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>PWA Data Logger</h1>
-
-        <label for="dataInput">Enter Data:</label>
-        <input type="text" id="dataInput" placeholder="Type something...">
-
-        <button id="submitButton">Send to Google Sheet</button>
-
-        <h2>Event Log</h2>
-        <div id="logContainer">
-            <!-- Logs will appear here -->
-        </div>
+    <div id="app">
+        <header>
+            <h1>On-Device Gemma Chat</h1>
+            <p id="status">Initializing...</p>
+        </header>
+        <main id="chat-container"></main>
+        <footer>
+            <input type="text" id="message-input" placeholder="Ask something..." disabled>
+            <button id="send-btn" disabled>Send</button>
+        </footer>
     </div>
 
-    <script>
-        // --- CONFIGURATION ---
-        // !!! REPLACE WITH YOUR GOOGLE APPS SCRIPT WEB APP URL !!!
-        const GOOGLE_APPS_SCRIPT_URL = 
-        'https://script.google.com/macros/s/AKfycbyUUH_ELYMZj01tgIsY3VnEpXQlm1HytTM-w7ubjLXh-AhdyZz1cGMn71ZNyIJcUWYI/exec';
-
-        // --- DOM Elements ---
-        const dataInput = document.getElementById('dataInput');
-    
-        const submitButton = document.getElementById('submitButton');
-        const logContainer = document.getElementById('logContainer');
-
-        // --- Logging Function ---
-        function logEvent(message, type = 'info') { // type can be 'info', 'success', 'error'
-            console.log(`[${type.toUpperCase()}] ${message}`);
-            const logEntry = document.createElement('div');
-            logEntry.classList.add('log-entry', type);
-            const timestamp = new Date().toLocaleTimeString();
-            logEntry.textContent = `[${timestamp}] [${type.toUpperCase()}] ${message}`;
-            logContainer.insertBefore(logEntry, logContainer.firstChild); // Prepend
-        }
-
-        // --- Global Error Handlers ---
-        window.onerror = function(message, source, lineno, colno, error) {
-            logEvent(`Unhandled Error: ${message} at ${source}:${lineno}:${colno}`, 'error');
-            if (error && error.stack) {
-                logEvent(`Stack: ${error.stack}`, 'error');
-            }
-            return true; // Prevents default browser error handling
-        };
-
-        window.onunhandledrejection = function(event) {
-            logEvent(`Unhandled Promise Rejection: ${event.reason}`, 'error');
-            if (event.reason && event.reason.stack) {
-                logEvent(`Stack: ${event.reason.stack}`, 'error');
-            }
-        };
-
-        // --- Application Logic ---
-        function sendDataToSheet() {
-            const textValue = dataInput.value.trim();
-            if (!textValue) {
-                logEvent('Input field is empty.', 'error');
-                alert('Please enter some data.');
-                return;
-            }
-
-            if (GOOGLE_APPS_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
-                logEvent('Google Apps Script URL is not configured. Please update it in the script.', 'error');
-                alert('Google Apps Script URL is not configured!');
-                return;
-            }
-
-            logEvent(`Attempting to send: "${textValue}"`, 'info');
-            submitButton.disabled = true;
-            submitButton.textContent = 'Sending...';
-
-            fetch(GOOGLE_APPS_SCRIPT_URL, {
-                method: 'POST',
-                // mode: 'cors', // Google Apps Script web apps (deployed to "Anyone") handle CORS for simple POSTs returning JSON
-                headers: {
-                    // 'Content-Type': 'application/x-www-form-urlencoded', // If sending form data
-                    'Content-Type': 'text/plain;charset=utf-8', // Or application/json if Apps Script is set to parse JSON
-                },
-                // body: new URLSearchParams({ textValue: textValue }) // For x-www-form-urlencoded
-                body: JSON.stringify({ textValue: textValue }) // Send as JSON
-            })
-            .then(response => {
-                if (!response.ok) {
-                    // For non-2xx responses, try to parse error if it's JSON, otherwise use statusText
-                    return response.json().catch(() => {
-                        throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
-                    }).then(errData => {
-                        throw new Error(`Server error: ${errData.message || response.statusText}`);
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.status === 'success') {
-                    logEvent(`Successfully saved: "${data.receivedData}" at ${data.timestamp}`, 'success');
-                    dataInput.value = ''; // Clear input
-                } else {
-                    logEvent(`Failed to save data: ${data.message}`, 'error');
-                }
-            })
-            .catch(error => {
-                logEvent(`Network or script error: ${error.message}`, 'error');
-                if (error.message.includes('Failed to fetch')) {
-                     logEvent('This might be a CORS issue if the Apps Script is not deployed correctly or if there is no network.', 'error');
-                }
-            })
-            .finally(() => {
-                submitButton.disabled = false;
-                submitButton.textContent = 'Send to Google Sheet';
+    <!-- JAVASCRIPT LOGIC (Unchanged) -->
+    <script type="module">
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(reg => console.log('Service worker registered.', reg))
+                    .catch(err => console.error('Service worker registration failed.', err));
             });
         }
 
-        // --- Event Listeners ---
-        submitButton.addEventListener('click', sendDataToSheet);
-        dataInput.addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                sendDataToSheet();
+        // Import transformers.js
+        import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.1';
+        env.allowRemoteModels = true;
+
+        // UI Elements
+        const status = document.getElementById('status');
+        const chatContainer = document.getElementById('chat-container');
+        const messageInput = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+
+        // AI Setup
+        status.textContent = 'Loading AI model... (This may take a while on first run)';
+        const model_id = 'Xenova/gemma-2b-it';
+        const generator = await pipeline('text-generation', model_id, {
+            progress_callback: (data) => {
+                if (data.status === 'progress') {
+                    const progress = (data.progress || 0).toFixed(2);
+                    status.textContent = `Loading: ${data.file} (${progress}%)`;
+                }
             }
         });
 
+        // UI Ready
+        status.textContent = 'AI is ready. Ask me anything!';
+        messageInput.disabled = false;
+        sendBtn.disabled = false;
+        addMessage('AI', 'Hello! I am Google\'s Gemma model running entirely on your device. How can I help you?');
 
-        // --- Service Worker Registration ---
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(registration => {
-                        logEvent('ServiceWorker registration successful with scope: ' + registration.scope, 'success');
-                    })
-                    .catch(error => {
-                        logEvent('ServiceWorker registration failed: ' + error, 'error');
-                    });
-            });
-        } else {
-            logEvent('Service workers are not supported in this browser.', 'info');
+        // Chat Logic
+        sendBtn.addEventListener('click', handleSend);
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+            }
+        });
+
+        async function handleSend() {
+            const userMessage = messageInput.value.trim();
+            if (!userMessage) return;
+            addMessage('You', userMessage);
+            messageInput.value = '';
+            messageInput.disabled = true;
+            sendBtn.disabled = true;
+
+            const thinkingMessage = addMessage('AI', '...');
+            const prompt = `<start_of_turn>user\n${userMessage}<end_of_turn>\n<start_of_turn>model\n`;
+            
+            const result = await generator(prompt, { max_new_tokens: 200, temperature: 0.7, top_k: 50, do_sample: true });
+            const aiResponse = result[0].generated_text.split('<start_of_turn>model\n')[1].trim();
+
+            thinkingMessage.textContent = aiResponse;
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            messageInput.disabled = false;
+            sendBtn.disabled = false;
+            messageInput.focus();
         }
 
-        // --- Initial Log ---
-        logEvent('PWA Logger Initialized.', 'info');
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            logEvent('Dark mode detected and applied.', 'info');
-        } else {
-            logEvent('Light mode detected.', 'info');
+        function addMessage(sender, text) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', sender.toLowerCase());
+            messageElement.textContent = text;
+            chatContainer.appendChild(messageElement);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return messageElement;
         }
-        // Check for standalone mode (iOS adds to homescreen)
-        if (window.navigator.standalone) {
-            logEvent('Running in standalone mode (iOS).', 'info');
-        }
-        // Check for display-mode: standalone (Android adds to homescreen)
-        if (window.matchMedia('(display-mode: standalone)').matches) {
-            logEvent('Running in standalone display mode.', 'info');
-        }
-
-
     </script>
 </body>
 </html>
