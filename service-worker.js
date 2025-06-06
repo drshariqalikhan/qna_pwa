@@ -1,9 +1,6 @@
 // service-worker.js
 
-const CACHE_NAME = 'gemma-chat-pwa-v1';
-
-// List of files that make up the "app shell"
-// Since JS and CSS are in index.html, the list is shorter.
+const CACHE_NAME = 'gemma-chat-pwa-v2'; // Increment version to force update
 const APP_SHELL_URLS = [
     '/',
     '/index.html',
@@ -12,35 +9,52 @@ const APP_SHELL_URLS = [
     '/icons/icon-512.png'
 ];
 
-// The install event fires when the service worker is first installed.
 self.addEventListener('install', event => {
-    console.log('Service Worker: Installing...');
+    console.log('[ServiceWorker] Install event triggered.');
     event.waitUntil(
         caches.open(CACHE_NAME).then(cache => {
-            console.log('Service Worker: Caching App Shell');
+            console.log('[ServiceWorker] Caching App Shell:', APP_SHELL_URLS);
             return cache.addAll(APP_SHELL_URLS);
+        }).then(() => {
+            console.log('[ServiceWorker] App Shell cached successfully.');
         })
     );
 });
 
-// The fetch event fires for every network request.
+self.addEventListener('activate', event => {
+    console.log('[ServiceWorker] Activate event triggered.');
+    // This script can be used to clean up old caches
+    event.waitUntil(
+        caches.keys().then(cacheNames => {
+            return Promise.all(
+                cacheNames.map(cacheName => {
+                    if (cacheName !== CACHE_NAME) {
+                        console.log('[ServiceWorker] Deleting old cache:', cacheName);
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        })
+    );
+});
+
 self.addEventListener('fetch', event => {
-    // We use a "Cache, falling back to Network" strategy.
-    // This is ideal for our PWA. It makes the app load instantly
-    // and caches new resources (like the AI model files) as they are downloaded.
+    // Log the request being fetched, but maybe filter out noisy requests like model chunks if needed
+    // console.log(`[ServiceWorker] Fetching: ${event.request.url}`);
+
     event.respondWith(
         caches.match(event.request).then(cachedResponse => {
-            // If the response is in the cache, return it
             if (cachedResponse) {
+                // console.log(`[ServiceWorker] Found in cache: ${event.request.url}`);
                 return cachedResponse;
             }
             
-            // If it's not in the cache, fetch it from the network
+            // console.log(`[ServiceWorker] Not in cache, fetching from network: ${event.request.url}`);
             return fetch(event.request).then(networkResponse => {
-                // And cache the new response for future offline use
+                // Don't cache everything. For instance, you might want to avoid caching API calls if they were dynamic.
+                // For this app, caching everything is fine.
                 return caches.open(CACHE_NAME).then(cache => {
-                    // We need to clone the response because it's a stream
-                    // that can only be consumed once.
+                    // console.log(`[ServiceWorker] Caching new resource: ${event.request.url}`);
                     cache.put(event.request, networkResponse.clone());
                     return networkResponse;
                 });
