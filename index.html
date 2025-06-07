@@ -149,29 +149,20 @@
             // --- App State ---
             let isGuessing = false;
             let guessInterval = null;
-            const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=';
+            // --- MODEL CHANGE: Using gemini-1.5-flash-latest for speed ---
+            const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=';
 
             // --- LOGGING ---
-            /**
-             * Adds a new entry to the on-screen log.
-             * @param {string} message - The message to log.
-             * @param {'INFO'|'SUCCESS'|'WARN'|'ERROR'} type - The type of log.
-             */
             function logEvent(message, type = 'INFO') {
                 const now = new Date();
                 const timestamp = now.toLocaleTimeString();
-                
                 const entry = document.createElement('p');
                 entry.className = `log-entry log-${type.toLowerCase()}`;
                 entry.innerHTML = `<span class="log-time">${timestamp}</span>[${type}] ${message}`;
-
-                logEntries.prepend(entry); // Add new logs to the top
-                console.log(`[${type}] ${message}`); // Also log to console for desktop debugging
+                logEntries.prepend(entry);
+                console.log(`[${type}] ${message}`);
             }
-
-            function toggleLogView() {
-                logContainer.classList.toggle('visible');
-            }
+            function toggleLogView() { logContainer.classList.toggle('visible'); }
 
             // --- Core Functions ---
             function initializeApp() {
@@ -201,9 +192,7 @@
                 }
             }
 
-            function getApiKey() {
-                return localStorage.getItem('geminiApiKey');
-            }
+            function getApiKey() { return localStorage.getItem('geminiApiKey'); }
 
             async function startCamera() {
                 logEvent('Requesting camera access...');
@@ -227,7 +216,7 @@
                     toggleGuessingBtn.textContent = 'Stop Guessing';
                     toggleGuessingBtn.classList.add('guessing');
                     guessDisplay.textContent = 'Let\'s see...';
-                    guessInterval = setInterval(captureAndGuess, 7000);
+                    guessInterval = setInterval(captureAndGuess, 5000); // Reduced interval for faster model
                     captureAndGuess();
                 } else {
                     logEvent('Guessing stopped.');
@@ -240,18 +229,14 @@
 
             async function captureAndGuess() {
                 if (!isGuessing) return;
-
                 logEvent('Starting capture and guess cycle.');
                 guessDisplay.textContent = 'Thinking...';
-                
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
                 logEvent(`Canvas resized to ${canvas.width}x${canvas.height}.`);
-
                 const context = canvas.getContext('2d');
                 context.drawImage(video, 0, 0, canvas.width, canvas.height);
                 logEvent('Frame drawn to canvas.');
-
                 const base64ImageData = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
                 logEvent(`Image converted to Base64 JPEG (size: ${Math.round(base64ImageData.length * 3/4 / 1024)} KB).`);
                 
@@ -263,13 +248,13 @@
                        guessDisplay.textContent = cleanGuess;
                        speak(cleanGuess);
                     } else {
-                       logEvent('Guessing was stopped while API call was in progress. Discarding result.', 'WARN');
+                       logEvent('Guessing stopped while API call in progress. Discarding result.', 'WARN');
                     }
                 } catch (error) {
                     logEvent(`Error during guess cycle: ${error.message}`, 'ERROR');
                     guessDisplay.textContent = "API Error";
                      if (error.message.includes('API key not valid')) {
-                        alert('Your API Key seems to be invalid. Please clear data and enter a new one.');
+                        alert('Your API Key seems to be invalid. Please enter a new one.');
                         localStorage.removeItem('geminiApiKey');
                         location.reload();
                     }
@@ -278,10 +263,8 @@
 
             async function callGeminiApi(base64ImageData) {
                 const apiKey = getApiKey();
-                if (!apiKey) {
-                    throw new Error("API key not found in localStorage.");
-                }
-                logEvent('Calling Gemini Vision API...');
+                if (!apiKey) { throw new Error("API key not found in localStorage."); }
+                logEvent('Calling Gemini 1.5 Flash API...');
                 
                 const requestBody = {
                     "contents": [{
@@ -290,7 +273,6 @@
                             { "inline_data": { "mime_type": "image/jpeg", "data": base64ImageData } }
                         ]
                     }],
-                     // Add safety settings to be less restrictive for drawings
                     "safetySettings": [
                         { "category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE" },
                         { "category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE" },
@@ -315,14 +297,13 @@
 
                 const data = await response.json();
                 
-                if (data.candidates && data.candidates.length > 0) {
+                if (data.candidates && data.candidates.length > 0 && data.candidates[0].content) {
                      const rawText = data.candidates[0].content.parts[0].text;
                      logEvent(`Received raw text from API: "${rawText}"`);
                      return rawText;
                 } else {
                     logEvent('API response valid, but no candidates returned. Check for safety blocks.', 'WARN');
                     console.warn("Gemini API response details:", data);
-                    // Check for promptFeedback which indicates a block
                     if (data.promptFeedback && data.promptFeedback.blockReason) {
                         throw new Error(`Request blocked by API for safety reason: ${data.promptFeedback.blockReason}`);
                     }
