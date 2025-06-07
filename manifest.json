@@ -1,21 +1,21 @@
 {
-    "name": "Offline Gemma Chat",
-    "short_name": "Gemma Chat",
-    "start_url": ".",
-    "display": "standalone",
-    "background_color": "#252526",
-    "theme_color": "#333333",
-    "description": "A PWA chat app with an on-device Gemma LLM.",
-    "icons": [
-        {
-            "src": "icons/icon-192.png",
-            "sizes": "192x192",
-            "type": "image/png"
-        },
-        {
-            "src": "icons/icon-512.png",
-            "sizes": "512x512",
-            "type": "image/png"
-        }
-    ]
+  "name": "Piction-AI",
+  "short_name": "PictionAI",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4a90e2",
+  "description": "An AI-powered Pictionary guessing game using your phone's camera.",
+  "icons": [
+    {
+      "src": "icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }
